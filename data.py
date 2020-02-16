@@ -24,6 +24,8 @@ graph = [
     ("16", ["12", "15"]),
 ]
 
+
+
 # Capacity of each link (Conjugated to Graph with order)
 # Here all the 19 links have the same capacity
 capacity = [3600]*12 + [1800]*2 + [5400]*2 + [3600]*4 + [1800]*10 + [3600]*2 + [1800]*2 \
@@ -33,10 +35,24 @@ capacity = [3600]*12 + [1800]*2 + [5400]*2 + [3600]*4 + [1800]*10 + [3600]*2 + [
 free_time = [48.28]*10 + [56.33]*2 + [48.28]*2 + [56.33]*2 + [48.28]*2 + [56.33]*2 \
             + [48.28]*10 + [56.33]*2 + [48.28]*2 + [56.33]*4 + [48.28]*6
 
+#Specify the type of each intersection
+#0 - intersection with no signs, 1 - intersection with signals, 2 - intersection with stop signs
+InterType = [1]*44
+#Define whether the signals function well in this road
+SigFun = [1]*44
+Cycle = [60]*44
+Green = [20]*44
+t_service = [30]*44
+hd = [2]*44
+
+
+#Link Functionality: Change according to the severity of road damages by disruptions
+function = [1]*44
+
 # Origin-destination pairs
 origins = ["1", "13", "6", "16"]
 destinations = ["13", "1", "16", "6"]
-# Generated ordered OD pairs: 
+# Generated ordered OD pairs:
 # first ("5", "15"), second ("5", "17"), third ("6", "15")...
 
 

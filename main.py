@@ -3,7 +3,7 @@ import data as dt
 
 # Initialize the model by data
 mod = TrafficFlowModel(dt.graph, dt.origins, dt.destinations, 
-dt.demand, dt.free_time, dt.capacity)
+dt.demand, dt.free_time, dt.capacity, dt.function, dt.InterType, dt.SigFun, dt.Cycle, dt.Green, dt.t_service, dt.hd)
 
 # Change the accuracy of solution if necessary
 mod._conv_accuracy = 1e-6
@@ -24,3 +24,4 @@ mod.report()
 
 # Return the solution if necessary
 mod._formatted_solution()
+

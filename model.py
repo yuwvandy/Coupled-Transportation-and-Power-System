@@ -9,13 +9,21 @@ class TrafficFlowModel:
         User Equilibrium problem.
     '''
     def __init__(self, graph= None, origins= [], destinations= [], 
-    demands= [], link_free_time= None, link_capacity= None):
-
+    demands= [], link_free_time= None, link_capacity= None, link_function = [], link_type = [], sig_function = [], \
+    Cycle = [], Green = [], t_service = [], hd = []):       
+        
         self.__network = TrafficNetwork(graph= graph, O = origins, D = destinations)
 
         # Initialization of parameters
         self.__link_free_time = np.array(link_free_time)
         self.__link_capacity = np.array(link_capacity)
+        self.__link_function = np.array(link_function)
+        self.__link_type = np.array(link_type)
+        self.__link_sigfun = np.array(sig_function)
+        self.__Cycle = np.array(Cycle)
+        self.__Green = np.array(Green)
+        self.__t_service = np.array(t_service)
+        self.__hd = np.array(hd)
         self.__demand = np.array(demands)
 
         # Alpha and beta (used in performance function)
@@ -207,7 +215,9 @@ class TrafficFlowModel:
         n_links = self.__network.num_of_links()
         link_time = np.zeros(n_links)
         for i in range(n_links):
-            link_time[i] = self.__link_time_performance(link_flow[i], self.__link_free_time[i], self.__link_capacity[i])
+            link_time[i] = self.__link_time_performance(link_flow[i], self.__link_free_time[i], self.__link_capacity[i], self.__link_function[i], \
+                                                        self.__link_type[i], self.__link_sigfun[i], self.__Cycle[i], self.__Green[i], \
+                                                        self.__t_service[i], self.__hd[i])
         return link_time
 
     def __link_time_to_path_time(self, link_time):
@@ -233,7 +243,19 @@ class TrafficFlowModel:
         path_free_time = self.__link_free_time.dot(self.__network.LP_matrix())
         return path_free_time
 
-    def __link_time_performance(self, link_flow, t0, capacity):
+    def __link_time_performance(self, link_flow, t0, capacity, link_function, link_type, link_sigfun, \
+                                Cycle, Green, t_service, hd):
+        ''' Performance function, which indicates the relationship
+            between flows (traffic volume) and travel time on 
+            the same link, consisting of two parts: normal time + intersection delay
+        '''
+        t_norm = self.__link_time_performance_norm(link_flow, t0, capacity, link_function)
+        t_inter = self.__link_time_performance_intersection(link_flow, link_function, link_type, link_sigfun, Cycle, Green, \
+                                                            capacity, t_service, hd)
+        value = t_norm + t_inter
+        return value
+    
+    def __link_time_performance_norm(self, link_flow, t0, capacity, link_function):
         ''' Performance function, which indicates the relationship
             between flows (traffic volume) and travel time on 
             the same link. According to the suggestion from Federal
@@ -241,7 +263,41 @@ class TrafficFlowModel:
             the following function:
                 t = t0 * (1 + alpha * (flow / capacity))^beta
         '''
-        value = t0 * (1 + self._alpha * ((link_flow/capacity)**self._beta))
+        value = t0 * (1 + self._alpha * ((link_flow/(link_function*capacity))**self._beta))  
+        return value
+
+    def __link_time_performance_intersection(self, link_flow, link_function, link_type, link_sigfun, Cycle, Green, \
+                                             Capacity, t_service, hd):
+        '''Time delay due to intersection: 
+           bichoice, either signal delay or unsigal delay
+        '''
+        delay_sig = self.__link_time_performance_intersection_sig(link_flow, link_function, link_sigfun, \
+                                                                  Cycle, Green, Capacity)
+        delay_unsig = self.__link_time_performance_intersection_unsig(link_flow, t_service, hd)
+        
+        value = link_type*(link_sigfun*delay_sig + (1 - link_sigfun)*delay_unsig) + (1 - link_type)*delay_unsig
+        return value
+        
+        
+        
+    def __link_time_performance_intersection_sig(self, link_flow, link_function, link_sigfun, Cycle, Green, Capacity):
+        '''Time delay due to intersection with signals
+           Details can be found in HCM TRB 2000: Highway capacity manual(HCM)
+        '''
+        temp0 = link_flow/(link_function*Capacity)
+        temp1 = temp0/(link_function*Capacity)
+        temp2 = 0.5*Cycle*(1-Green/Cycle)/(1 - min(1, temp0)*Green/Cycle)
+        temp3 = 900/4*(temp0 - 1 + ((temp0 - 1)**2 + 16*temp1)**0.5)
+        
+        value = temp2 + temp3
+        return value
+    
+    def __link_time_performance_intersection_unsig(self, link_flow, t_service, hd):
+        '''Time delay due to intersection with no signals, including:
+            service time(s) and waiting time(s).
+            Details can be found in HCM TRB 2000: Highway capacity manual(HCM)
+        '''
+        value = t_service + 900/4*(link_flow*hd/3600 - 1 + ((link_flow*hd/3600 - 1)**2 + link_flow*hd**2/(450*3600/4))**0.5) + 5
         return value
 
     def __link_time_performance_integrated(self, link_flow, t0, capacity):
