@@ -2,7 +2,7 @@
 In this file you can find sample data which could be used
 into the TrafficFlowMod class in model.py file
 """
-
+import pandas as pd
 # Graph represented by directed dictionary
 # In order: first ("5", "7"), second ("5", "9"), third ("6", "7")...
 graph = [
@@ -24,7 +24,14 @@ graph = [
     ("16", ["12", "15"]),
 ]
 
+#Graph Node and link Coordinates
+tnode = pd.read_csv('TN.csv')
+tnode.dropna(axis = 1, how = 'all', inplace = True)
+tnode.dropna(axis = 0, how = 'any', inplace = True)
 
+tlink = pd.read_csv('TL.csv')
+tlink.dropna(axis = 1, how = 'any', inplace = True)
+tlink.dropna(axis = 0, how = 'any', inplace = True)
 
 # Capacity of each link (Conjugated to Graph with order)
 # Here all the 19 links have the same capacity
@@ -58,5 +65,4 @@ destinations = ["13", "1", "16", "6"]
 
 # Demand between each OD pair (Conjugated to the Cartesian 
 # product of Origins and destinations with order)
-demand = [3000, 2000, 1200, 600]
-
+demand = [3000, 1000, 5000, 4000]

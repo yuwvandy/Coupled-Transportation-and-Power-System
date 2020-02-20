@@ -10,10 +10,11 @@ class TrafficFlowModel:
     '''
     def __init__(self, graph= None, origins= [], destinations= [], 
     demands= [], link_free_time= None, link_capacity= None, link_function = [], link_type = [], sig_function = [], \
-    Cycle = [], Green = [], t_service = [], hd = []):       
+    Cycle = [], Green = [], t_service = [], hd = [], tnode = [], tlink = []):       
         
-        self.__network = TrafficNetwork(graph= graph, O = origins, D = destinations)
+        self.__network = TrafficNetwork(graph= graph, O = origins, D = destinations, tnode = tnode, tlink = tlink)
 
+        
         # Initialization of parameters
         self.__link_free_time = np.array(link_free_time)
         self.__link_capacity = np.array(link_capacity)
@@ -25,6 +26,8 @@ class TrafficFlowModel:
         self.__t_service = np.array(t_service)
         self.__hd = np.array(hd)
         self.__demand = np.array(demands)
+        self.tnode = tnode
+        self.tlink = tlink
 
         # Alpha and beta (used in performance function)
         self._alpha = 0.15
@@ -63,13 +66,13 @@ class TrafficFlowModel:
             ------
             self.__solved = True
         '''
-        if self.__detail:
-            print(self.__dash_line())
-            print("TRAFFIC FLOW ASSIGN MODEL (USER EQUILIBRIUM) \nFRANK-WOLFE ALGORITHM - DETAIL OF ITERATIONS")
-            print(self.__dash_line())
-            print(self.__dash_line())
-            print("Initialization")
-            print(self.__dash_line())
+#        if self.__detail:
+#            print(self.__dash_line())
+#            print("TRAFFIC FLOW ASSIGN MODEL (USER EQUILIBRIUM) \nFRANK-WOLFE ALGORITHM - DETAIL OF ITERATIONS")
+#            print(self.__dash_line())
+#            print(self.__dash_line())
+#            print("Initialization")
+#            print(self.__dash_line())
         
         # Step 0: based on the x0, generate the x1
         empty_flow = np.zeros(self.__network.num_of_links())
@@ -78,11 +81,11 @@ class TrafficFlowModel:
         counter = 0
         while True:
             
-            if self.__detail:
-                print(self.__dash_line())
-                print("Iteration %s" % counter)
-                print(self.__dash_line())
-                print("Current link flow:\n%s" % link_flow)
+#            if self.__detail:
+#                print(self.__dash_line())
+#                print("Iteration %s" % counter)
+#                print(self.__dash_line())
+#                print("Current link flow:\n%s" % link_flow)
 
             # Step 1 & Step 2: Use the link flow matrix -x to generate the time, then generate the auxiliary link flow matrix -y
             auxiliary_link_flow = self.__all_or_nothing_assign(link_flow)
@@ -96,7 +99,7 @@ class TrafficFlowModel:
             # Print the detail if necessary
             if self.__detail:
                 print("Optimal theta: %.8f" % opt_theta)
-                print("Auxiliary link flow:\n%s" % auxiliary_link_flow)
+#                print("Auxiliary link flow:\n%s" % auxiliary_link_flow)
 
             # Step 5: Check the Convergence, if FALSE, then return to Step 1
             if self.__is_convergent(link_flow, new_link_flow):
@@ -109,7 +112,15 @@ class TrafficFlowModel:
             else:
                 link_flow = new_link_flow
                 counter += 1
-
+        
+        self.visualnetwork()
+        
+    def visualnetwork(self):
+        """Visual the location of each transportation nodes and links,
+        and also flows on the links
+        """
+        self.__network.visualnetwork()
+        
     def _formatted_solution(self):
         ''' According to the link flow we obtained in `solve`,
             generate a tuple which contains four elements:
@@ -196,10 +207,10 @@ class TrafficFlowModel:
             ind_min = sub_path_time.index(min_in_group)
             target_path_ind = indice_grouped[ind_min]
             path_flow[target_path_ind] = self.__demand[OD_pair_index]
-        if self.__detail:
-            print("Link time:\n%s" % link_time)
-            print("Path flow:\n%s" % path_flow)
-            print("Path time:\n%s" % path_time)
+#        if self.__detail:
+#            print("Link time:\n%s" % link_time)
+#            print("Path flow:\n%s" % path_flow)
+#            print("Path time:\n%s" % path_time)
         
         # PATH FLOW -> LINK FLOW
         new_link_flow = self.__path_flow_to_link_flow(path_flow)
@@ -250,9 +261,9 @@ class TrafficFlowModel:
             the same link, consisting of two parts: normal time + intersection delay
         '''
         t_norm = self.__link_time_performance_norm(link_flow, t0, capacity, link_function)
-        t_inter = self.__link_time_performance_intersection(link_flow, link_function, link_type, link_sigfun, Cycle, Green, \
-                                                            capacity, t_service, hd)
-        value = t_norm + t_inter
+#        t_inter = self.__link_time_performance_intersection(link_flow, link_function, link_type, link_sigfun, Cycle, Green, \
+#                                                            capacity, t_service, hd)
+        value = t_norm + 0
         return value
     
     def __link_time_performance_norm(self, link_flow, t0, capacity, link_function):

@@ -17,19 +17,25 @@ class Graph(object):
     do not use the unordered data structure.
     """
 
-    def __init__(self, graph_dict= None):
+    def __init__(self, graph_dict= None, tnode = None, tlink = None):
         """ initializes a directed graph object by a dictionary,
             If no dictionary or None is given, an empty dictionary 
             will be used. Notice that this initial graph cannot
             contain a self-loop.
         """
         from collections import OrderedDict
+        import numpy as np
         if graph_dict == None:
             graph_dict = OrderedDict()
         self.__graph_dict = OrderedDict(graph_dict)
         if self.__is_with_loop():
             raise ValueError("The graph are supposed to be without self-loop please recheck the input data!")
-
+        
+        print(np.array(tnode[['X', 'Y']]))
+        #Initialize the vertex X, Y coordinates
+        self.xynode = np.array(tnode[['X', 'Y']])
+        self.node2node = np.array(tlink[['From Node', 'To Node']])
+        
     def vertices(self):
         """ returns the vertices of a graph
         """
@@ -39,6 +45,24 @@ class Graph(object):
         """ returns the edges of a graph
         """
         return self.__generate_edges()
+    
+    def visualnetwork(self):
+        from matplotlib import pyplot as plt
+        """Visualize the graph on 2D (3D) dimension of the corresponding network
+        """
+        plt.scatter(self.xynode[:, 0], self.xynode[:, 1], color = 'blue')
+        for i in range(len(self.xynode)):
+            plt.annotate("{}".format(i + 1), xy = (self.xynode[i, 0], self.xynode[i, 1]))
+
+        for i in range(len(self.node2node)):
+            fnode = self.node2node[i, 0] - 1
+            tnode = self.node2node[i, 1] - 1
+            plt.plot([self.xynode[fnode, 0], self.xynode[tnode, 0]], [self.xynode[fnode, 1], self.xynode[tnode, 1]], color = 'black')
+            
+        plt.title("Transportation Network")
+        plt.xlabel("X-Coordinate")
+        plt.ylabel("Y_Coordinate")
+        
 
     def add_vertex(self, vertex):
         """ If the vertex "vertex" is not in 
@@ -139,8 +163,8 @@ class TrafficNetwork(Graph):
         after the initialization.
     '''
 
-    def __init__(self, graph= None, O= [], D= []):
-        Graph.__init__(self, graph)
+    def __init__(self, graph= None, O= [], D= [], tnode = None, tlink = None):
+        Graph.__init__(self, graph, tnode, tlink)
         self.__origins = O
         self.__destinations = D
         self.__cast()
