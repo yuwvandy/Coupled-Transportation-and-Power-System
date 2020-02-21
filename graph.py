@@ -1,3 +1,4 @@
+import ShareFunction as sf
 
 class Graph(object):
     """ DIRECTED GRAPH CLASS
@@ -17,7 +18,7 @@ class Graph(object):
     do not use the unordered data structure.
     """
 
-    def __init__(self, graph_dict= None, tnode = None, tlink = None):
+    def __init__(self, graph_dict= None, color = None, name = None, lat = None, lon = None, nodenum = None, edgenum = None):
         """ initializes a directed graph object by a dictionary,
             If no dictionary or None is given, an empty dictionary 
             will be used. Notice that this initial graph cannot
@@ -28,14 +29,114 @@ class Graph(object):
         if graph_dict == None:
             graph_dict = OrderedDict()
         self.__graph_dict = OrderedDict(graph_dict)
+        
         if self.__is_with_loop():
             raise ValueError("The graph are supposed to be without self-loop please recheck the input data!")
+
+        self.c = color
+        self.name = name
+        self.lat = lat
+        self.lon = lon
+        self.Nnum = nodenum
+        self.Enum = edgenum
         
-        print(np.array(tnode[['X', 'Y']]))
-        #Initialize the vertex X, Y coordinates
-        self.xynode = np.array(tnode[['X', 'Y']])
-        self.node2node = np.array(tlink[['From Node', 'To Node']])
+    def CSVread(self, filename):
+        """import csv file and clear extra column or row with NaN or 0
+        """
+            
+        import pandas as pd
         
+        CSV = pd.read_csv(filename)
+        CSV.dropna(axis = 1, how = 'all', inplace = True)
+        CSV.dropna(axis = 0, how = 'any', inplace = True)
+        
+        return CSV
+    
+    def topology(self, filename1, filename2, Type):
+        """load information of node coordinates, arc from CSV file
+        """
+        self.verticesxy(filename1, Type)
+        self.edgexy(filename2)
+        
+    
+    def verticesxy(self, filename, Type):
+        """load node coordinates information from CSV
+        """
+        
+        N = self.CSVread(filename)
+        self.Basemap(Type)
+        self.Nlat, self.Nlon = np.array(N['lat']), np.array(N['lon'])
+        self.Nx, self.Ny = self.Base(self.Nlon, self.Nlat)
+        
+    def Dmatrix(self):
+        """calculate the distance matrix for the network:D
+        D[i, j] represents the distance between vertices i, j in network D
+        """
+        
+        self.D = np.zeros([self.Nnum, self.Nnum])
+        for i in range(self.Nnum):
+            for j in range(i, self.Nnum):
+                node1 = np.array([self.Nx[i], self.Ny[i]])
+                node2 = np.array([self.Nx[j], self.Ny[j]])
+                
+                self.D[i, j] = sf.dist(node1, node2)
+                self.D[j ,i] = self.D[i, j]
+                
+    def Adjmatrix(self):
+        """calculate the adjacent matrix for the network:A
+        A[i, j] represents whether there is an edge between node i and j
+        """
+        self.A = np.zeros([self.Nnum, self.Nnum])
+        for i in range(len(self.Enum)):
+            self.A[self.linkf[i] - 1, self.linkt[i] - 1] = 1
+        
+    def edgexy(self, filename):
+        """load edge information from CSV
+        """
+        
+        L = self.CSVread(filename)
+        self.linkf = L['From Node']
+        self.linkt = L['To Node']
+        
+    def Basemap(self, Type):
+        """Geographical Map within certain locations.
+        The location is given by some longitude and latitude interval
+        """
+        import os
+        os.environ['PROJ_LIB'] = r"C:\Users\wany105\AppData\Local\Continuum\anaconda3\pkgs\proj4-5.2.0-ha925a31_1\Library\share"
+        
+        from mpl_toolkits.basemap import Basemap #Basemap package is used for creating geography map
+    
+        latinter = self.lat[1] - self.lat[0]
+        loninter = self.lon[1] - self.lon[0]
+        
+        if(Type == 'local'):
+            self.Base = Basemap(projection = 'merc', resolution = 'l', area_thresh = 1000.0, lat_0=0, lon_0=0, llcrnrlon = self.lon[0], llcrnrlat = self.lat[0], urcrnrlon = self.lon[1], urcrnrlat = self.lat[1])
+        elif(Type == 'whole'):
+            self.Base = Basemap(resolution = 'l', area_thresh = 1000.0, lat_0=0, lon_0=0, llcrnrlon = self.lon[0], llcrnrlat = self.lat[1], urcrnrlon = self.lon[1], urcrnrlat = self.lat[1])
+        
+        plt.figure(figsize = (20, 10))    
+        self.Base.drawcoastlines()
+        self.Base.drawcountries()
+        self.Base.drawmapboundary()
+        self.Base.drawparallels(np.arange(self.lat[0] - latinter/5, self.lat[1] + latinter/5, latinter/5), labels=[1,0,0,1], fontsize=10)
+        self.Base.drawmeridians(np.arange(self.lon[0] - loninter/5, self.lon[1] + loninter/5, loninter/5), labels=[1,1,0,1], fontsize=10)
+
+    def Networkplot(self):
+        """Plot the network on the specified base map
+        2 steps: plot the vertices, plot the links
+        """
+        from matplotlib import pyplot as plt
+
+        plt.scatter(self.Nx, self.Ny, color = self.c) #plot the vertices
+        for i in range(len(self.Nx)):
+            plt.annotate("{}".format(i + 1), xy = (self.Nx[i], self.Ny[i]))
+            
+        for i in range(len(self.linkf)): #plot the links
+            fnode = self.linkf[i] - 1
+            tnode = self.linkt[i] - 1
+            plt.plot([self.Nx[fnode], self.Nx[tnode]], [self.Ny[fnode], self.Ny[tnode]], color = self.c)
+
     def vertices(self):
         """ returns the vertices of a graph
         """
@@ -44,25 +145,7 @@ class Graph(object):
     def edges(self):
         """ returns the edges of a graph
         """
-        return self.__generate_edges()
-    
-    def visualnetwork(self):
-        from matplotlib import pyplot as plt
-        """Visualize the graph on 2D (3D) dimension of the corresponding network
-        """
-        plt.scatter(self.xynode[:, 0], self.xynode[:, 1], color = 'blue')
-        for i in range(len(self.xynode)):
-            plt.annotate("{}".format(i + 1), xy = (self.xynode[i, 0], self.xynode[i, 1]))
-
-        for i in range(len(self.node2node)):
-            fnode = self.node2node[i, 0] - 1
-            tnode = self.node2node[i, 1] - 1
-            plt.plot([self.xynode[fnode, 0], self.xynode[tnode, 0]], [self.xynode[fnode, 1], self.xynode[tnode, 1]], color = 'black')
-            
-        plt.title("Transportation Network")
-        plt.xlabel("X-Coordinate")
-        plt.ylabel("Y_Coordinate")
-        
+        return self.__generate_edges()    
 
     def add_vertex(self, vertex):
         """ If the vertex "vertex" is not in 
