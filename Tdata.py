@@ -1,11 +1,14 @@
-""" SAMPLE
-In this file you can find sample data which could be used
-into the TrafficFlowMod class in model.py file
+# -*- coding: utf-8 -*-
 """
-import pandas as pd
-# Graph represented by directed dictionary
-# In order: first ("5", "7"), second ("5", "9"), third ("6", "7")...
-graph = [
+Created on Sun Feb 23 10:35:35 2020
+
+@author: wany105
+"""
+
+"""Transportation Data Input: Transportation Network Structure, Traffic Data
+"""
+
+Tadjl = [
     ("1", ["2", "12"]),
     ("2", ["1", "3", "11"]),
     ("3", ["2", "4", "10"]),
@@ -24,20 +27,11 @@ graph = [
     ("16", ["12", "15"]),
 ]
 
-#Graph Node and link Coordinates
-tnode = pd.read_csv('TN.csv')
-tnode.dropna(axis = 1, how = 'all', inplace = True)
-tnode.dropna(axis = 0, how = 'any', inplace = True)
-
-tlink = pd.read_csv('TL.csv')
-tlink.dropna(axis = 1, how = 'any', inplace = True)
-tlink.dropna(axis = 0, how = 'any', inplace = True)
-
 # Capacity of each link (Conjugated to Graph with order)
 # Here all the 19 links have the same capacity
 capacity = [3600]*12 + [1800]*2 + [5400]*2 + [3600]*4 + [1800]*10 + [3600]*2 + [1800]*2 \
             + [5400]*2 + [3600]*2 + [1800]*6
-
+            
 # Free travel time of each link (Conjugated to Graph with order)
 free_time = [48.28]*10 + [56.33]*2 + [48.28]*2 + [56.33]*2 + [48.28]*2 + [56.33]*2 \
             + [48.28]*10 + [56.33]*2 + [48.28]*2 + [56.33]*4 + [48.28]*6
@@ -52,7 +46,6 @@ Green = [20]*44
 t_service = [30]*44
 hd = [2]*44
 
-
 #Link Functionality: Change according to the severity of road damages by disruptions
 function = [1]*44
 
@@ -66,3 +59,20 @@ destinations = ["13", "1", "16", "6"]
 # Demand between each OD pair (Conjugated to the Cartesian 
 # product of Origins and destinations with order)
 demand = [3000, 1000, 5000, 4000]
+
+color = 'blue'
+name = 'TX-transportation'
+lat, lon = [29.286, 29.313], [-94.8, -94.777]
+nodenum, edgenum = 16, 44
+O, D = ["1", "13", "6", "16"], ["13", "1", "16", "6"]
+
+nodefile, edgefile, Type = 'TN.csv', 'TL.csv', 'local'
+
+##Value setting for solving flow
+accuracy = 1e-4
+detail = True
+precision = 4
+
+
+
+

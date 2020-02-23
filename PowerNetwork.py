@@ -4,7 +4,14 @@ Created on Fri Feb 21 09:48:58 2020
 
 @author: wany105
 """
-import graph
+from graph import Graph
+import ShareFunction as sf
 
-class Powernetwork(graph):
-    
+class Power(Graph):
+    def __init__(self, graph_dict= None, color = None, name = None, lat = None, lon = None, nodenum = None, edgenum = None, nodefile = None, edgefile = None, Type = None):
+        Graph.__init__(self, graph_dict, color, name, lat, lon, nodenum, edgenum, nodefile, edgefile, Type)
+        
+            
+        
+        
+        

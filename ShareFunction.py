@@ -27,4 +27,31 @@ def sortget(A, Num, flag = 0):
             break
     
     return Index
+
+def indexget(A, a):
+    """Get the index of all elements equaling a specified value
+    Input: the numpy array A, return the index value
+    """
+    Index = []
+    for i in range(len(A)):
+        if(A[i] == a):
+            Index.append(i)
+    
+    return Index
+
+def Normalize(X, Type):
+    """Normalize an numpy array
+    Input: X, Output: normalized X using specific methods
+    """
+    import numpy as np
+    
+    if(Type == 'max'):
+        X = X/np.max(X)
+        return X    
+    
+    if(Type == 'mean_sig'):
+        mu = np.mean(X)
+        sigma = np.std(X)
+        X = (X-mu)/sigma    
+        return X
     

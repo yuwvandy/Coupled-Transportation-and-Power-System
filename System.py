@@ -4,7 +4,7 @@ Created on Thu Feb 20 20:43:07 2020
 
 @author: wany105
 """
-class System(object):
+class system(object):
     """System object: network of networks
     """
     def __init__(self, name, networks, inters = None):
@@ -72,7 +72,13 @@ class System(object):
                         fnodex, fnodey, fnodez = network1.Nx[j], network1.Ny[j], self.Zlevel[network1.name]
                         tnodex, tnodey, tnodez = network2.Nx[k], network2.Ny[k], self.Zlevel[network2.name]
                         ax.plot([fnodex, tnodex], [fnodey, tnodey], [fnodez, tnodez], interdependency.c, lw = 1)   
-                        
+        
+        #Link Plots
+        Normflow = sf.Normalize(network.flow, Type = 'max'):
+        for i in range(network.Nnum):
+            for j in range(network.Nnum):
+                if(network.A[i, j] == 1):
+                    
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
