@@ -60,7 +60,24 @@ class PTinter1(object):
             temp = self.network2.psignal[i]/len(index) #Assumption: the energy required is divided evenly
             self.network1.dadj[index] += temp
         
+        self.flowadj()
+        
         return self.network1.dadj
+    
+    def flowadj(self):
+        """Set up the flow matrix for the interdependency link
+        flow[i, j] denotes the flow along the interdependency link from node i in network1 to node j in network2
+        """
+        import numpy as np
+        
+        self.flow = np.zeros([self.network1.Nnum, self.network2.Nnum])
+        for i in range(self.network1.Nnum):
+            if(np.sum(self.adj[i, :]) == 0):
+                tempflow = 0
+            else:
+                tempflow = self.network1.dadj[i]/np.sum(self.adj[i, :])
+            self.flow[i, :] = tempflow*self.adj[i, :]
+                
             
             
             

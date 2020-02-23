@@ -16,7 +16,7 @@ class PowerFlowModel:
         Cplex solver is used to perform linear optimization
     '''
     def __init__(self, network):
-        self.__network = network
+        self.network = network
     
     def load(self, psignal = None, interdependency = None):
         '''Calculate the load of other network on this network
@@ -34,12 +34,12 @@ class PowerFlowModel:
     def flowsetup(self):
         '''Define flow of each link for later optimization to use
         '''
-        self.PFflow = np.zeros([self.__network.Nnum, self.__network.Nnum], dtype = object)
+        self.PFflow = np.zeros([self.network.Nnum, self.network.Nnum], dtype = object)
         self.flowlist = []
         
-        for i in range(self.__network.Enum):
-            node1 = self.__network.linkf[i]
-            node2 = self.__network.linkt[i]
+        for i in range(self.network.Enum):
+            node1 = self.network.linkf[i]
+            node2 = self.network.linkt[i]
             exec('f{}_{} = self.mdl.continuous_var(name = "Pf{}_{}")'.format(node1, node2, node1, node2))
             self.PFflow[node1 - 1, node2 - 1] = eval('f{}_{}'.format(node1, node2))
             self.flowlist.append([node1 - 1, node2 - 1, eval('f{}_{}'.format(node1, node2))])
@@ -47,7 +47,7 @@ class PowerFlowModel:
     def flowconstraint(self):
         '''Define constraint on flow by flow conservation
         '''
-        for i in range(self.__network.Nnum):
+        for i in range(self.network.Nnum):
             if(i != 0):
                 self.mdl.add_constraint(self.mdl.sum(self.PFflow[:, i]) - self.mdl.sum(self.PFflow[i, :]) == self.load[i])
     
@@ -56,7 +56,7 @@ class PowerFlowModel:
         Calculate the cost to transport single unit flow along the link
         '''
         
-        linkcost = self.__network.D/1000*cost #cost/km
+        linkcost = self.network.D/1000*cost #cost/km
         self.obj = self.mdl.sum(self.flowlist[i][2] * linkcost[self.flowlist[i][0], self.flowlist[i][1]]\
                 for i in range(len(self.flowlist)))
         
@@ -82,9 +82,10 @@ class PowerFlowModel:
     def solexport(self):
         '''Create the flow matrix tracking down the solution for the intial flow optimization
         '''
-        self.__network.flow = np.zeros([self.__network.Nnum, self.__network.Nnum])
+        self.network.flow = np.zeros([self.network.Nnum, self.network.Nnum])
         for flow in self.flowlist:
-            self.__network.flow[flow[0], flow[1]] = flow[2].solution_value
+            self.network.flow[flow[0], flow[1]] = flow[2].solution_value
+        
         
             
                 

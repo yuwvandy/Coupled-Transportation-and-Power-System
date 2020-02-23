@@ -4,6 +4,8 @@ Created on Thu Feb 20 20:43:07 2020
 
 @author: wany105
 """
+import ShareFunction as sf
+
 class system(object):
     """System object: network of networks
     """
@@ -12,6 +14,13 @@ class system(object):
         self.networks = networks
         self.inters = inters
         
+    def nodenum(self, networks):
+        """Sum of the vertex number over all networks
+        """
+        self.Nnum = 0
+        for network in networks:
+            self.Nnum += network.Nnum
+        
     def Zlevel(self):
         """Assign each network a Z coordinate so that we can plot them in different level
         """
@@ -19,6 +28,12 @@ class system(object):
         self.Zlevel = {}
         for i in range(len(self.networks)):
             self.Zlevel[self.networks[i].name] = i*50 
+            
+    def Amatrix(self):
+        """Combine the adjacent matrix of each network and each pair of interdependency
+        """
+        self.A = np.zeros([self.Nnum, self.Nnum])
+        
             
         
     def Systemplot3d(self):
@@ -38,6 +53,8 @@ class system(object):
         #Within networks
         for i in range(len(self.networks)):
             network = self.networks[i]
+            Normflow = sf.Normalize(network.flow, Type = 'max')
+            
             ##Plane Coordinates
             x = np.arange(250, 3200, 1)
             y = np.arange(250, 3200, 1)
@@ -56,13 +73,15 @@ class system(object):
                 fnode = network.linkf[j] - 1
                 tnode = network.linkt[j] - 1
                 
-                ax.plot([X[fnode], X[tnode]], [Y[fnode], Y[tnode]], [self.Zlevel[network.name], self.Zlevel[network.name]], network.c, lw = 1)   
+                ax.plot([X[fnode], X[tnode]], [Y[fnode], Y[tnode]], [self.Zlevel[network.name], self.Zlevel[network.name]], network.c, lw = 4*Normflow[fnode, tnode])   
         
         
         #Among networks
         for i in range(len(self.inters)):
             
             interdependency = self.inters[i]
+            Normflow = sf.Normalize(interdependency.flow, Type = 'max')
+            
             network1 = interdependency.network1
             network2 = interdependency.network2
             
@@ -71,13 +90,7 @@ class system(object):
                     if(interdependency.adj[j, k] == 1):
                         fnodex, fnodey, fnodez = network1.Nx[j], network1.Ny[j], self.Zlevel[network1.name]
                         tnodex, tnodey, tnodez = network2.Nx[k], network2.Ny[k], self.Zlevel[network2.name]
-                        ax.plot([fnodex, tnodex], [fnodey, tnodey], [fnodez, tnodez], interdependency.c, lw = 1)   
-        
-        #Link Plots
-        Normflow = sf.Normalize(network.flow, Type = 'max'):
-        for i in range(network.Nnum):
-            for j in range(network.Nnum):
-                if(network.A[i, j] == 1):
+                        ax.plot([fnodex, tnodex], [fnodey, tnodey], [fnodez, tnodez], interdependency.c, lw = 4*Normflow[j, k])
                     
         ax.set_xlabel('X')
         ax.set_ylabel('Y')

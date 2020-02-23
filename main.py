@@ -14,6 +14,7 @@ import Tdata as td
 import Pdata as pd
 from System import system
 
+
 #Define the traffic network
 TXtraffic = Transportation(graph_dict = td.Tadjl, color = td.color, name = td.name, lat = td.lat, lon = td.lon, nodenum = td.nodenum, edgenum = td.edgenum, \
                            O = td.O, D = td.D, nodefile = td.nodefile, edgefile = td.edgefile, Type = td.Type)
@@ -40,10 +41,5 @@ TXTflow = TrafficFlowModel(td.Tadjl, td.origins, td.destinations, td.demand, td.
 
 TXTflow.solve(td.accuracy, td.detail, td.precision)
 
-TX_TP = system(name = 'TX_TP', networks = [Tgraph, Pgraph], inters = [TX_TPInter1])
-TX_TP.systemplot3d()
-
-
-
-
-
+TX_TP = system(name = 'TX_TP', networks = [TXpower, TXtraffic], inters = [TX_TPInter1])
+TX_TP.Systemplot3d()
