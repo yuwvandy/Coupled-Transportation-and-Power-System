@@ -7,10 +7,29 @@ Created on Tue Mar  3 11:33:13 2020
 
 """Hurricane Data input: Hurricane Location, Hurricane Longitude, Hurricane Latitude, Hurricane Wind Pressure, Wind Speed
 """
-Hnum = 6
-Hurricane_name = ['H2008', 'H1983', 'H1947', 'H1938', 'H1895', 'H1863']
-Latitude = [[17, 47.5], [26.5, 41.5], [22.5, 35.5], [15.5, 30.5], [17, 33], [21, 44]]
-Longitude = [[-95.5, -36.5], [-100, -90], [-98.5, -81.5], [-96.5, -84], [-97, -82.5], [-95.3, -71]]
-Data = ['Hurricane2008.csv', 'Hurricane1983.csv', 'Hurricane1947.csv', 'Hurricane1938.csv', 'Hurricane1895.csv', 'Hurricane1863.csv']
+Hnum = 15
+Hurricane_name = ['H1863', 'H1871', 'H1895', 'H1899', 'H1900', 'H1915', 'H1938', 'H1947', 'H1959', 'H1974', 'H1983', 'H1989', 'H1995', 'H2003', 'H2008']
+Data = ['Hurricane1863.csv', 'Hurricane1871.csv', 'Hurricane1895.csv', 'Hurricane1899.csv', 'Hurricane1900.csv', 'Hurricane1915.csv',\
+        'Hurricane1938.csv', 'Hurricane1947.csv', 'Hurricane1959.csv', 'Hurricane1974.csv', 'Hurricane1983.csv', 'Hurricane1989.csv',\
+        'Hurricane1995.csv', 'Hurricane2003.csv', 'Hurricane2008.csv']
 
+Data_Location = r"C:\Users\wany105\Desktop\traffic and power\User-Equilibrium-Solution-master\User-Equilibrium-Solution-master\Hurricane\\"
 
+def GeoBound(Hnum, Hurricane_name, Data, Data_Location):
+    """Find the boundary of the trajectory of the hurricane (in longitude and latitude form)
+    """
+    import pandas as pd
+    
+    Latitude = []
+    Longitude = []
+    for i in range(Hnum):
+        CSV = pd.read_csv(Data_Location + Data[i])
+        lon = CSV['Longitude']
+        lat = CSV['Latitude']
+        
+        Latitude.append([min(lat), max(lat)])
+        Longitude.append([min(lon), max(lon)])
+        
+    return Latitude, Longitude
+
+Latitude, Longitude = GeoBound(Hnum, Hurricane_name, Data, Data_Location)

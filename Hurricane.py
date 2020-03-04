@@ -13,13 +13,13 @@ class Hurricane(object):
         self.lat = Latitude
         self.lon = Longitude
     
-    def fileimport(self, data):
+    def fileimport(self, data, location):
         '''import information about the hurricane:
         Location, Longitude, Latitude, Wind Pressure, Wind Speed
         '''
         import pandas as pd
         
-        CSV = pd.read_csv(data)
+        CSV = pd.read_csv(location + data)
         
         self.Infoextract(CSV)
     
@@ -59,12 +59,12 @@ class Hurricane(object):
         self.Base.drawparallels(np.arange(self.lat[0] - latinter/5, self.lat[1] + latinter/5, latinter/5), labels=[1,0,0,1], fontsize = 10)
         self.Base.drawmeridians(np.arange(self.lon[0] - loninter/5, self.lon[1] + loninter/5, loninter/5), labels=[1,1,0,1], fontsize = 10)
         
-    def verticexy(self, filename, Type):
+    def verticexy(self, filename, filelocation, Type):
         '''load node coordinates information from CSV
         '''
         import numpy as np
         
-        self.fileimport(filename)
+        self.fileimport(filename, filelocation)
         self.Basemap(Type)
         self.Nx, self.Ny = self.Base(self.Nlon, self.Nlat)
     
@@ -121,18 +121,23 @@ class Hurricane(object):
                 temp = self.Rm[j]/self.Dist[i, j]
                 self.v[i, j] = self.ws[j]*(temp**b*np.exp(1 - temp**b))**a
     
-    def Failprob(self, mu, sigma):
+    def Failprob(self, mu, sigma, a, b):
         '''Calculate the fail probabiilty of each transmission towers
         mu, sigma: normal distribution parameters to calculate the failure probability
         '''
         from scipy.stats import norm
         import numpy as np
         
+        self.ED_Rm()
+        self.NetworkXY()
+        self.Dist()
+        self.v(a = 0.5, b = 2)
+        
         self.failprob = np.zeros(len(self.netX))
         for i in range(len(self.netX)):
             temp = 0
             for j in range(len(self.Nx)):
-                v = self.v[i, j]
+                v = 1.287 * self.v[i, j] #Peak gust wind speed
                 prob = norm.cdf(np.log(v/mu)/sigma)
                 if(prob >= temp):
                     temp = prob
