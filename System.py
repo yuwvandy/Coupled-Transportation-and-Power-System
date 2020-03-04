@@ -96,6 +96,22 @@ class system(object):
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
         ax.legend(frameon = 0)
+        
+        
+    def fail_simu(self, hurricane):
+        """Simulate the failure scenario due to hurricane
+        """
+        import numpy as np
+        
+        Power = self.networks[0]
+        self.nfail = np.zeros(Power.Nnum)
+        for i in range(Power.Nnum):
+            temp = np.random.rand()
+            if(temp <= hurricane.failprob[i]):
+                self.nfail[i] = 1
+        
+            
+        
     
 
         

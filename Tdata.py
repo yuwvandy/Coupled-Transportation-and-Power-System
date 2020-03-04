@@ -69,7 +69,7 @@ O, D = ["1", "13", "6", "16"], ["13", "1", "16", "6"]
 nodefile, edgefile, Type = 'TN.csv', 'TL.csv', 'local'
 
 ##Value setting for solving flow
-accuracy = 1e-4
+accuracy = 1e-2
 detail = True
 precision = 4
 

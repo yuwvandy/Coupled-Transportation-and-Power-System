@@ -46,11 +46,15 @@ TXTflow.solve(td.accuracy, td.detail, td.precision)
 TX_TP = system(name = 'TX_TP', networks = [TXpower, TXtraffic], inters = [TX_TPInter1])
 TX_TP.Systemplot3d()
 
-#Define 6 selected hurricanes
+#Define selected hurricanes
 Hurricanes = list()
-for i in range(6):
+for i in range(2):
     Hurricanes.append(Hurricane(Hcd.Hurricane_name[i], TXpower, Hcd.Latitude[i], Hcd.Longitude[i]))
     Hurricanes[-1].verticexy(Hcd.Data[i], filelocation = Hcd.Data_Location, Type = 'local')
     Hurricanes[-1].trajectory_plot(townlat = 29.3013, townlon = -94.7977)
     Hurricanes[-1].Failprob(mu = 304, sigma = 45.6, a = 0.5, b = 1)
+    
+TX_TP.fail_simu(Hurricanes[-1])
+    
+    
 
