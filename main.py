@@ -55,6 +55,7 @@ for i in range(2):
     Hurricanes[-1].Failprob(mu = 304, sigma = 45.6, a = 0.5, b = 1)
     
 TX_TP.fail_simu(Hurricanes[-1])
+TX_TP.flow_redistribution()
     
     
 

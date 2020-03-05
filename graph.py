@@ -45,6 +45,20 @@ class Graph(object):
         
         self.Dmatrix()
         self.Amatrix()
+        self.dict2adjlist(graph_dict)
+        
+    def dict2adjlist(self, graph_dict):
+        """Convert the graph_dict to graph adjacency list
+        """
+        self.Adjl = []
+        
+        for i in range(len(graph_dict)):
+            self.Adjl.append([])
+            for j in range(len(graph_dict[i][1])):
+#                if(graph_dict[i][1][j] == ""):
+#                    continue
+                self.Adjl[-1].append(eval(graph_dict[i][1][j]))
+                
         
     def CSVread(self, filename):
         """import csv file and clear extra column or row with NaN or 0

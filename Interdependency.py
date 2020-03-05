@@ -32,7 +32,7 @@ class PTinter1(object):
                 node1 = np.array([self.network1.Nx[i], self.network1.Ny[i]])
                 node2 = np.array([self.network2.Nx[j], self.network2.Ny[j]])
                 
-                self.D[i, j] = sf.dist(node1, node2)
+                self.D[i, j] = sf.dist(node1, node2)/1000
                 
     def dependadj(self, DepenNum):
         """Define the adjacent matrix for the interdependency A of dimension network1.Nnum*network2.Nnum

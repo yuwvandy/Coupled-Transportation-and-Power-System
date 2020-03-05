@@ -104,11 +104,41 @@ class system(object):
         import numpy as np
         
         Power = self.networks[0]
-        self.nfail = np.zeros(Power.Nnum)
+        self.networks[0].nfail = np.zeros(Power.Nnum)
         for i in range(Power.Nnum):
             temp = np.random.rand()
             if(temp <= hurricane.failprob[i]):
-                self.nfail[i] = 1
+                self.networks[0].nfail[i] = 1
+        
+        self.networks[0].nfail[0] = 0 ##The 1st node in power network is power station, which is assumed to be protected during hurricane
+                
+    def flow_redistribution(self):
+        """Simulate the flow redistribution of the whole system
+        """
+        import numpy as np
+        
+        #power flow redistribution
+        self.networks[0].flow2 = np.copy(self.networks[0].flow)
+        
+        self.flowrecur(0)
+    
+    def flowrecur(self, v):
+        """Recursively perform flow redistribution of the whole system
+        """
+        import numpy as np
+        
+        for i in self.networks[0].Adjl[v]:
+            if(self.networks[0].flow[v, i - 1] != 0):
+                if(self.networks[0].nfail[i - 1] == 1):
+                    print(v, i - 1)
+                    self.networks[0].flow2[v, i - 1] = 0.5*self.networks[0].flow2[v, i - 1]
+                self.flowrecur(i - 1)
+                
+        
+        
+        
+        
+        
         
             
         
