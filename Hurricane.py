@@ -5,13 +5,16 @@ Created on Tue Feb 25 21:28:02 2020
 @author: wany105
 """
 import ShareFunction as sf
+import numpy as np
+from matplotlib import pyplot as plt
 
 class Hurricane(object):
-    def __init__(self, name, network, Latitude, Longitude):
+    def __init__(self, name, network, Latitude, Longitude, color):
         self.name = name
         self.network = network
         self.lat = Latitude
         self.lon = Longitude
+        self.c = color
     
     def fileimport(self, data, location):
         '''import information about the hurricane:
@@ -142,6 +145,11 @@ class Hurricane(object):
                 if(prob >= temp):
                     temp = prob
             self.failprob[i] = temp
+            
+        self.failprob *= 1 ##Lack of knowledge, need to be further researched on
+
+
+        
         
         
         

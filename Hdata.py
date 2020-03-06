@@ -13,6 +13,10 @@ Data = ['Hurricane1863.csv', 'Hurricane1871.csv', 'Hurricane1895.csv', 'Hurrican
         'Hurricane1938.csv', 'Hurricane1947.csv', 'Hurricane1959.csv', 'Hurricane1974.csv', 'Hurricane1983.csv', 'Hurricane1989.csv',\
         'Hurricane1995.csv', 'Hurricane2003.csv', 'Hurricane2008.csv']
 
+color = ['red', 'lightsalmon', 'orange', 'darkkhaki', 'olivedrab', \
+         'yellowgreen', 'skyblue', 'teal', 'darkorchid', 'plum', \
+         'darkviolet', 'black' ,'grey' ,'navy', 'wheat']
+
 Data_Location = r"C:\Users\wany105\Desktop\traffic and power\User-Equilibrium-Solution-master\User-Equilibrium-Solution-master\Hurricane\\"
 
 def GeoBound(Hnum, Hurricane_name, Data, Data_Location):

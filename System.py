@@ -14,6 +14,8 @@ class system(object):
         self.networks = networks
         self.inters = inters
         
+        self.nodenum(networks)
+        
     def nodenum(self, networks):
         """Sum of the vertex number over all networks
         """
@@ -27,13 +29,7 @@ class system(object):
         
         self.Zlevel = {}
         for i in range(len(self.networks)):
-            self.Zlevel[self.networks[i].name] = i*50 
-            
-    def Amatrix(self):
-        """Combine the adjacent matrix of each network and each pair of interdependency
-        """
-        self.A = np.zeros([self.Nnum, self.Nnum])
-        
+            self.Zlevel[self.networks[i].name] = i*50        
             
         
     def Systemplot3d(self):
@@ -104,35 +100,82 @@ class system(object):
         import numpy as np
         
         Power = self.networks[0]
-        self.networks[0].nfail = np.zeros(Power.Nnum)
+        self.networks[0].nfail = np.ones(Power.Nnum)
         for i in range(Power.Nnum):
             temp = np.random.rand()
             if(temp <= hurricane.failprob[i]):
-                self.networks[0].nfail[i] = 1
+                self.networks[0].nfail[i] = 0
         
-        self.networks[0].nfail[0] = 0 ##The 1st node in power network is power station, which is assumed to be protected during hurricane
-                
-    def flow_redistribution(self):
-        """Simulate the flow redistribution of the whole system
-        """
-        import numpy as np
+        self.networks[0].nfail[0] = 1 ##The 1st node in power network is power station, which is assumed to be protected during hurricane
         
-        #power flow redistribution
-        self.networks[0].flow2 = np.copy(self.networks[0].flow)
-        
-        self.flowrecur(0)
+        ##Global Fail Index
+        self.nfail = np.ones(self.Nnum)
+        self.nfail[0:self.networks[0].Nnum] = self.networks[0].nfail
     
-    def flowrecur(self, v):
-        """Recursively perform flow redistribution of the whole system
+    def local_global_adj_flow(self):
+        """Convert the local adjacent and flow matrix to global
+        """
+        self.global_flowadj()
+        self.global_Amatrix()
+        
+    def global_flowadj(self):
+        """Combine the flow matrix within a power network
+        with the flow between the power and transportation network
         """
         import numpy as np
         
-        for i in self.networks[0].Adjl[v]:
-            if(self.networks[0].flow[v, i - 1] != 0):
-                if(self.networks[0].nfail[i - 1] == 1):
-                    print(v, i - 1)
-                    self.networks[0].flow2[v, i - 1] = 0.5*self.networks[0].flow2[v, i - 1]
-                self.flowrecur(i - 1)
+        self.flowadj = np.zeros([self.Nnum, self.Nnum])
+        
+        self.flowadj[0:self.networks[0].Nnum, 0:self.networks[0].Nnum] = self.networks[0].flow
+        self.flowadj[0:self.networks[0].Nnum, self.networks[0].Nnum:self.Nnum] = self.inters[0].flow
+        
+    def global_Amatrix(self):
+        """Combine the adjacent matrix of each network and each pair of interdependency
+        """
+        import numpy as np
+        
+        self.A = np.zeros([self.Nnum, self.Nnum])
+        self.A[0:self.networks[0].Nnum, 0:self.networks[0].Nnum] = self.networks[0].A
+        self.A[0:self.networks[0].Nnum, self.networks[0].Nnum:self.Nnum] = self.inters[0].adj
+    
+    
+    def flow_redistribution(self):
+        """Redistribute the flow after the initial failure - cascading failure
+        """
+        import numpy as np
+        
+        self.flowadj2 = np.copy(self.flowadj)
+        self.networks[0].fperformance = [1]
+        stack = []
+        stack.append(0)
+        while(stack != []):
+            v = stack.pop()
+            for i in range(self.Nnum):
+                if(self.flowadj2[v, i] != 0):
+                    stack.append(i)
+            if(v == 0):
+                flow_sum = np.sum(self.flowadj2[v, :])
+            else:
+                flow_sum = np.sum(self.flowadj2[:, v])
+            
+            self.flowadj2[v, :] = self.flowadj2[v, :]*self.nfail
+            ratio = self.flowadj2[v, :]/np.sum(self.flowadj2[v, :])
+            ratio[np.isnan(ratio)] = 0
+            self.flowadj2[v, :] = flow_sum*ratio
+            
+            ##Convert the updated system flow to power flow
+#            self.networks[0].flow2 = self.flowadj2[0:self.networks[0].Nnum, 0:self.networks[0].Nnum]
+            self.networks[0].flow2 = self.flowadj2
+            
+            ##Calculate the performance
+            self.networks[0].performance_flow()
+        
+#    def flow_global_local(self):
+#        """Convert global flow to local flow
+#        """
+#        import numpy as np
+        
+        
                 
         
         
