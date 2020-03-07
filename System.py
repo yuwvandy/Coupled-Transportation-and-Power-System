@@ -5,6 +5,8 @@ Created on Thu Feb 20 20:43:07 2020
 @author: wany105
 """
 import ShareFunction as sf
+import numpy as np
+from matplotlib import pyplot as plt
 
 class system(object):
     """System object: network of networks
@@ -139,13 +141,35 @@ class system(object):
         self.A[0:self.networks[0].Nnum, self.networks[0].Nnum:self.Nnum] = self.inters[0].adj
     
     
+    def Cascading_failure(self, up_bound, low_bound):
+        """Simulate the cascading failure based on flow redistribution
+        """
+        self.failsequence = []
+        self.failsequence.append(self.nfail)
+        
+        self.flowsequence = []
+        self.flowsequence.append(self.flowadj)
+        
+        self.networks[0].flowsequence = [self.networks[0].flow]
+        self.inters[0].flowsequence = [self.inters[0].flow]
+        
+        self.networks[0].fperformance = [1]
+        
+#        self.flow_redistribution()
+        
+        while(1):
+            self.flow_redistribution()
+            self.fail_update(up_bound, low_bound)
+            if((self.failsequence[-1] == self.failsequence[-2]).all()):
+                break
+        
+        
     def flow_redistribution(self):
         """Redistribute the flow after the initial failure - cascading failure
         """
         import numpy as np
         
-        self.flowadj2 = np.copy(self.flowadj)
-        self.networks[0].fperformance = [1]
+        self.flowadj2 = np.copy(self.flowsequence[-1])
         stack = []
         stack.append(0)
         while(stack != []):
@@ -158,22 +182,37 @@ class system(object):
             else:
                 flow_sum = np.sum(self.flowadj2[:, v])
             
-            self.flowadj2[v, :] = self.flowadj2[v, :]*self.nfail
+            self.flowadj2[v, :] = self.flowadj2[v, :]*self.failsequence[-1]
             ratio = self.flowadj2[v, :]/np.sum(self.flowadj2[v, :])
             ratio[np.isnan(ratio)] = 0
             self.flowadj2[v, :] = flow_sum*ratio
             
             ##Convert the updated system flow to power flow
-#            self.networks[0].flow2 = self.flowadj2[0:self.networks[0].Nnum, 0:self.networks[0].Nnum]
-            self.networks[0].flow2 = self.flowadj2
-            
+            self.networks[0].flowsequence.append(self.flowadj2[0:self.networks[0].Nnum, 0:self.networks[0].Nnum])
+            ##Convert the updated system flow to interdependent flow
+            self.inters[0].flowsequence.append(self.flowadj2[0:self.networks[0].Nnum, self.networks[0].Nnum:self.Nnum])
             ##Calculate the performance
             self.networks[0].performance_flow()
         
-#    def flow_global_local(self):
-#        """Convert global flow to local flow
-#        """
-#        import numpy as np
+        self.flowsequence.append(self.flowadj2)
+        
+    def fail_update(self, up_bound, low_bound):
+        """Update the failure sceneria of vertices and links based on current flow
+        """
+        
+        self.nfail2 = np.copy(self.failsequence[-1])
+        flow_origin = self.flowsequence[0]
+        
+        for i in range(self.Nnum):
+            if(i != 0):
+                flowsum = np.sum(self.flowadj2[:, i])
+                flowsum0 = np.sum(flow_origin[:, i])
+                if(flowsum > up_bound*flowsum0 or flowsum < low_bound*flowsum0): #flow exceeding the capacity or less than the normal function threshold
+                    self.nfail2[i] = 0
+        
+        self.failsequence.append(self.nfail2)
+                
+            
         
         
                 

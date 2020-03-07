@@ -146,6 +146,7 @@ class Hurricane(object):
                     temp = prob
             self.failprob[i] = temp
             
+        
         self.failprob *= 1 ##Lack of knowledge, need to be further researched on
 
 

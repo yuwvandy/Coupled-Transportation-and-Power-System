@@ -36,3 +36,5 @@ lat, lon = [29.286, 29.313], [-94.8, -94.777]
 nodenum, edgenum = 60, 72
 
 nodefile, edgefile, Type = 'PN.csv', 'PL.csv', 'local'
+
+up_bound, low_bound = 1.5, 0.3

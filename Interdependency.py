@@ -77,6 +77,39 @@ class PTinter1(object):
             else:
                 tempflow = self.network1.dadj[i]/np.sum(self.adj[i, :])
             self.flow[i, :] = tempflow*self.adj[i, :]
+            
+    def Conditional_prob(self, Index_hurr, Num):
+        """Calculate the conditional probability of the traffic node failure given power node failure
+        """
+        import numpy as np
+        
+        temp = self.system.fail_history[Index_hurr]
+        
+        self.con_failprob = np.zeros_like(self.adj)
+        for i in range(self.network1.Nnum):
+            for j in range(self.network2.Nnum):
+                temp1 = 0
+                temp2 = 0
+                for k in range(Num):
+                    if(temp[k][i] == 0):
+                        temp1 += 1
+                        if(temp[k][j + self.network1.Nnum] == 0):
+                            temp2 += 1
+                if(temp1 == 0):
+                    self.con_failprob[i, j] = 0
+                else:
+                    self.con_failprob[i, j] = temp2/temp1
+    
+    def heatmap_conditional_prob(self):
+        """Visualize the conditional probability with heatmap
+        """
+        import seaborn as sns
+        
+        ax = sns.heatmap(self.con_failprob)
+        bottom, top = ax.get_xlim()
+        ax.set_xlabel('Transportation Intersection')
+        ax.set_ylabel('Pole or Rod')
+        
                 
             
             

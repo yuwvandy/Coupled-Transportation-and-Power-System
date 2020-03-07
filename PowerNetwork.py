@@ -20,7 +20,7 @@ class Power(Graph):
         import numpy as np
         
         flowsum = np.sum(self.flow)
-        self.fperformance.append(min(1, np.sum(self.flow2)/flowsum))
+        self.fperformance.append(min(1, np.sum(self.flowsequence[-1])/flowsum))
         
     def performance_topology(self):
         """Calculate power performance based on topology variation
