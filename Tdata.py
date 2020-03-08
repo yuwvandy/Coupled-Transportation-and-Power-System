@@ -43,8 +43,8 @@ InterType = [1]*44
 SigFun = [1]*44
 Cycle = [60]*44
 Green = [20]*44
-t_service = [30]*44
-hd = [2]*44
+t_service = [10]*44
+hd = [2.5]*44
 
 #Link Functionality: Change according to the severity of road damages by disruptions
 function = [1]*44
@@ -69,7 +69,7 @@ O, D = ["1", "13", "6", "16"], ["13", "1", "16", "6"]
 nodefile, edgefile, Type = 'TN.csv', 'TL.csv', 'local'
 
 ##Value setting for solving flow
-accuracy = 1e-2
+accuracy = 1e-5
 detail = True
 precision = 4
 

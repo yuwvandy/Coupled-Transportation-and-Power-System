@@ -263,8 +263,8 @@ class TrafficFlowModel:
             the same link, consisting of two parts: normal time + intersection delay
         '''
         t_norm = self.__link_time_performance_norm(link_flow, t0, capacity, link_function)
-#        t_inter = self.__link_time_performance_intersection(link_flow, link_function, link_type, link_sigfun, Cycle, Green, \
-#                                                            capacity, t_service, hd)
+#        t_inter = self.__link_time_performance_intersection(link_flow, link_function, link_type, link_sigfun, Cycle, Green, capacity, t_service, hd)
+#        value = t_norm + t_inter
         value = t_norm + 0
         return value
     
@@ -289,9 +289,8 @@ class TrafficFlowModel:
         delay_unsig = self.__link_time_performance_intersection_unsig(link_flow, t_service, hd)
         
         value = link_type*(link_sigfun*delay_sig + (1 - link_sigfun)*delay_unsig) + (1 - link_type)*delay_unsig
+
         return value
-        
-        
         
     def __link_time_performance_intersection_sig(self, link_flow, link_function, link_sigfun, Cycle, Green, Capacity):
         '''Time delay due to intersection with signals
@@ -303,6 +302,7 @@ class TrafficFlowModel:
         temp3 = 900/4*(temp0 - 1 + ((temp0 - 1)**2 + 16*temp1)**0.5)
         
         value = temp2 + temp3
+
         return value
     
     def __link_time_performance_intersection_unsig(self, link_flow, t_service, hd):
@@ -313,13 +313,57 @@ class TrafficFlowModel:
         value = t_service + 900/4*(link_flow*hd/3600 - 1 + ((link_flow*hd/3600 - 1)**2 + link_flow*hd**2/(450*3600/4))**0.5) + 5
         return value
 
-    def __link_time_performance_integrated(self, link_flow, t0, capacity):
+    def __link_time_performance_integrated(self, link_flow, t0, capacity, link_function, hd, Green, Cycle, link_type, link_sigfun, tservice):
         ''' The integrated (with repsect to link flow) form of
             aforementioned performance function.
         '''
         val1 = t0 * link_flow
         # Some optimization should be implemented for avoiding overflow
-        val2 = (self._alpha * t0 * link_flow / (self._beta + 1)) * (link_flow / capacity)**self._beta
+        val2 = (self._alpha * t0 * link_flow / (self._beta + 1)) * (link_flow / (link_function*capacity))**self._beta
+        
+#        #Calculate the derivative of the third term
+#        #third term has two subterms: signal, unsignal
+#        #for the signal one: 3 terms
+#        #for the 1st term
+#        temp0 = link_flow/(link_function*capacity)
+#        if(temp0 >= 1):
+#            delaysig_prime1 = 0.5*Cycle*(1 - Green/Cycle)/(1 - Green/Cycle)*link_flow
+#        else:
+#            A = 0.5*Cycle*(1 - Green/Cycle)
+#            B = Green/Cycle/(link_function*capacity)
+#            delaysig_prime1 = -A/B*np.log(1 - B*link_flow)
+#        
+#        #for the 2nd term
+#        delaysig_prime2 = 900/4/2/(link_function*capacity)*link_flow**2 - 900/4*link_flow
+#        #for the 3rd term
+#        a = 1/(link_function*capacity)**2
+#        b = 16/(link_function*capacity)**2 - 2/(link_function*capacity)
+#        c = 1
+#        delaysig_prime3_1 = (b/(4*a) + link_flow/2)*(a*link_flow**2+b*link_flow+c)**0.5
+#        delaysig_prime3_2 = (4*a*c - b**2)/8/a**1.5*np.log((2*a*link_flow + b)/a**0.5 + 2*(a*link_flow**2+b*c+c)**0.5)
+#        delaysig_prime3 = 900/4*(delaysig_prime3_1 + delaysig_prime3_2)
+#        
+#        delaysig_prime = delaysig_prime1+delaysig_prime2+delaysig_prime3
+#        
+#        #for the unsignal one: three terms
+#        delayunsig_prime1 = tservice*link_flow
+#        delayunsig_prime3 = 5*link_flow
+#        
+#        delayunsig_prime2_1 = 900/4*(hd/3600/2*link_flow**2 - link_flow)
+#        
+#        a = (hd/3600)**2
+#        b = hd**2*4/(450*3600) - hd/1800
+#        c = 1
+#        temp1 = (b/4/a+link_flow/2)*(a*link_flow**2 + b*link_flow + c)**0.5
+#        temp2 = (4*a*c - b**2)/8/a**1.5*np.log((2*a*link_flow+b)/a**0.5 + 2*(a*link_flow**2 + b*c + c)**0.5)
+#        delayunsig_prime2_2 = 900/4*(temp1 + temp2)
+#        
+#        delayunsig_prime = delayunsig_prime1 + delayunsig_prime3 + delayunsig_prime2_1 + delayunsig_prime2_2
+#        
+#        
+#        val3 = link_type*link_sigfun*delaysig_prime + link_type*(1 - link_sigfun)*delayunsig_prime + (1 - link_type)*delayunsig_prime
+#    
+#        value = val1 + val2 + val3
         value = val1 + val2
         return value
 
@@ -331,7 +375,9 @@ class TrafficFlowModel:
         '''
         val = 0
         for i in range(self.network.num_of_links()):
-            val += self.__link_time_performance_integrated(link_flow= mixed_flow[i], t0= self.link_free_time[i], capacity= self.link_capacity[i])
+            val += self.__link_time_performance_integrated(link_flow= mixed_flow[i], t0= self.link_free_time[i], capacity= self.link_capacity[i], link_function= self.link_function[i], \
+                                                           hd = self.hd[i], Green = self.Green[i], Cycle = self.Cycle[i], link_type = self.link_type[i], link_sigfun = self.link_sigfun[i],\
+                                                           tservice = self.t_service[i])
         return val
 
     def __golden_section(self, link_flow, auxiliary_link_flow, accuracy= 1e-8):
